@@ -1,24 +1,9 @@
-import httpx
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-async def get_countries_meta(country_meta_url:str):
-    async with httpx.AsyncClient() as country_meta:
-        country_response = await country_meta.get(f'{country_meta_url}')
-        
-        return country_response.json
-    
-
-async def get_exchange_rate_by_country_code():
-    async with httpx.AsyncClient() as exchange_meta:
-        exchange_meta_url = os.getenv("EXCHANGE_RATE_META_ENDPOINT")
-        response = await exchange_meta.get(f'{exchange_meta_url}{'COUNTRY_CODE'}')
+from ..utils.api_requests_handler import get_countries_meta, get_exchange_rate_by_country_code
 
 
-async def create_country_db():
-    pass
+async def create_country_db(country_meta_url, exchange_rate_meta_url):
+    country_meta_response = await get_countries_meta(country_meta_url, exchange_rate_meta_url)
+    return country_meta_response
 
 async def fetch_country_db_filtering():
     pass
