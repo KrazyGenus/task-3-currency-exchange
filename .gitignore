@@ -1,0 +1,57 @@
+# Python dependencies
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Logs
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Build output
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.orig
+*.rej
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.nox/
+.tox/
+
+# Dependency directories
+.uv/
+pip-wheel-metadata/
+
+# Miscellaneous
+*.lock
+*.sqlite3
+*.db
+*.tgz
+*.tar.gz
