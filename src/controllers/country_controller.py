@@ -1,4 +1,8 @@
 from ..services.country_refresh_service import create_country_db, get_filtered_countries, find_country_by_name, delete_country_by_name, db_country_status
+from ..utils.image_generation import fetch_stored_summary_image
+
+
+
 async def create_country(country_meta_url, exchange_rate_meta_url, db_session):
     create_meta_response = await create_country_db(country_meta_url, exchange_rate_meta_url, db_session)
     return create_meta_response
@@ -31,4 +35,5 @@ async def get_table_status(db_session):
 
 
 async def get_summary_image():
-    pass
+    image_url = await fetch_stored_summary_image()
+    return image_url

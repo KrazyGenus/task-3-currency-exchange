@@ -27,6 +27,36 @@ async def get_countries_meta(country_meta_url:str, exchange_rate_meta_url:str):
             })
        
     for country in json_country_response:
+        if "name" not in country :
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail= {
+                    "error": "Validation failed",
+                    "details": {
+                      "name": "is required"
+                    }
+                })
+            
+        if "population" not in country:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail= {
+                    "error": "Validation failed",
+                    "details": {
+                      "population": "is required"
+                    }
+                })
+            
+        
+        if "currency_code" not in country:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail= {
+                    "error": "Validation failed",
+                    "details": {
+                      "currency_code": "is required"
+                    }
+                })
         parsed_dict = {}
         parsed_dict["name"] = country.get("name")
         parsed_dict["capital"] = country.get("capital")

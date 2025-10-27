@@ -4,6 +4,10 @@ from ..models.models import Country
 from .database_service import upsert_country_data
 from sqlalchemy import select, func, and_, delete
 from fastapi import HTTPException, status
+from datetime import datetime
+
+
+
 
 # store the country payload to the db
 async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session):
@@ -59,6 +63,7 @@ async def get_filtered_countries(query_payload, db_session):
             base_selection = base_selection.order_by(sort_map[sort_value])
     result = await db_session.execute(base_selection)
     filtered_countries = result.scalars().all()
+
     return filtered_countries
         
         
@@ -82,7 +87,14 @@ async def delete_country_by_name(country_name:str, db_session):
         print(e)
     
 async def db_country_status(db_session):
-    pass
-
-async def fetch_country_image_summary():
-    pass
+    try:
+        count = await db_session.scalar(select(func.count(Country.id)))
+        if count > 0:
+            count += 1
+        last_refresh_time_stamp = await db_session.scalar(select(func.max(Country.last_refreshed_at)))
+        return {
+            "total_countries": int(count),
+            "last_refreshed_at": last_refresh_time_stamp.strftime('%Y-%m-%dT%H:%M:%SZ')
+        }
+    except Exception as e:
+        print(e)
