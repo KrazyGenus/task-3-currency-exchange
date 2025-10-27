@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 # 1. Configuration and Environment Variables
 load_dotenv()
 # CRITICAL FIX: Correctly retrieve the environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("MYSQL_URL")
 
 if not DATABASE_URL:
     raise ValueError("The DATABASE_URL environment variable is not set.")
