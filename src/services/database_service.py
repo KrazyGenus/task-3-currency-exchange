@@ -65,3 +65,4 @@ async def upsert_country_data(db_session: AsyncSession, country_objects_list: Li
         await db_session.rollback()
         print(f"🛑 CRITICAL ERROR during Upsert operation: {type(e).__name__} - {e}")
         raise
+

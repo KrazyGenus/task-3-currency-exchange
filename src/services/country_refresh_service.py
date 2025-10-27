@@ -2,7 +2,7 @@ from ..utils.api_requests_handler import get_countries_meta
 from ..utils.image_generation import generate_summary_image
 from ..models.models import Country
 from .database_service import upsert_country_data
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 
 # store the country payload to the db
 async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session):
@@ -34,9 +34,33 @@ async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session
 
 
 
-async def fetch_country_db_filtering():
-    pass
-
+async def get_filtered_countries(query_payload, db_session):
+    base_selection = select(Country)
+    sort_map = {
+        "gdp_desc": Country.estimated_gdp.desc(),
+        "gdp_asc": Country.estimated_gdp.asc(),
+        "name_asc": Country.name.asc(),
+        "name_desc": Country.name.desc()
+    }
+    
+    
+    if "region" in query_payload:
+        region_value = query_payload.get("region").strip()
+        base_selection = base_selection.where(Country.region.ilike(f"{region_value}"))
+    
+    if "currency" in query_payload:
+        currency_value = query_payload.get("currency").strip()
+        base_selection = base_selection.where(Country.currency_code.ilike(f"{currency_value}"))
+    
+    if "sort" in query_payload:
+        sort_value = query_payload.get("sort").strip()
+        if sort_value in sort_map:
+            base_selection = base_selection.order_by(sort_map[sort_value])
+    result = await db_session.execute(base_selection)
+    filtered_countries = result.scalars().all()
+    return filtered_countries
+        
+        
 async def fetch_country_by_name():
     pass
 
