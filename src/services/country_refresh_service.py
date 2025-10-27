@@ -2,7 +2,8 @@ from ..utils.api_requests_handler import get_countries_meta
 from ..utils.image_generation import generate_summary_image
 from ..models.models import Country
 from .database_service import upsert_country_data
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, delete
+from fastapi import HTTPException, status
 
 # store the country payload to the db
 async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session):
@@ -61,14 +62,26 @@ async def get_filtered_countries(query_payload, db_session):
     return filtered_countries
         
         
-async def fetch_country_by_name():
-    pass
+async def find_country_by_name(country_name:str, db_session):
+    base_selection = select(Country)
+    country_name = country_name.strip()
+    base_selection = base_selection.where(Country.name.ilike(f"{country_name}"))
+    country_payload = await db_session.execute(base_selection)
+    result = country_payload.scalars().all()
+    return result
 
-async def delete_country_by_name():
-    pass
+
+
+async def delete_country_by_name(country_name:str, db_session):
+    country_name = country_name.strip()
+    try:
+        delete_selection = (delete(Country).where(Country.name.ilike(f"{country_name}")))
+        result = await db_session.execute(delete_selection)
+        await db_session.commit()
+    except Exception as e:
+        print(e)
     
-    
-async def db_country_table_status():
+async def db_country_status(db_session):
     pass
 
 async def fetch_country_image_summary():
