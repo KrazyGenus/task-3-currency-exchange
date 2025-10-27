@@ -14,8 +14,6 @@ RUN uv sync --frozen --no-dev
 # Copy your application code
 COPY . .
 
-# Install your app as a package (fixes import issues)
-RUN uv run pip install -e .
 
 EXPOSE 8000
 

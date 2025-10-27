@@ -50,7 +50,6 @@ htmlcov/
 pip-wheel-metadata/
 
 # Miscellaneous
-*.lock
 *.sqlite3
 *.db
 *.tgz
