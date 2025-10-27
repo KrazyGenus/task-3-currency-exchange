@@ -17,7 +17,6 @@ async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session
     print(country_meta_response)
     for country in country_meta_response:
         new_entry = Country(**country)
-        print("New entry", new_entry)
         new_objects.append(new_entry)
     print(new_objects)
     country_count = await upsert_country_data(db_session, new_objects)
@@ -30,9 +29,7 @@ async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session
             )
         ).all()
     top_5_gdp_countries = [{"name": name, "estimated_gdp": estimated_gdp} for name, estimated_gdp in top_5_gdp_countries_raw]
-    print(top_5_gdp_countries)
     last_refresh_time_stamp = await db_session.scalar(select(func.max(Country.last_refreshed_at)))
-    print(last_refresh_time_stamp)
     await generate_summary_image(country_count, top_5_gdp_countries, last_refresh_time_stamp)
         
 

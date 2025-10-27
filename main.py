@@ -33,7 +33,7 @@ async def fetch_and_cache(db_session: AsyncSession = Depends(get_async_db)):
     exchange_rate_meta_url = os.getenv("EXCHANGE_RATE_META_ENDPOINT")
     print("DB", db_session)
     await create_country(country_meta_url, exchange_rate_meta_url, db_session)
-
+  
 
 @app.get('/countries', response_model=List[CountrySchema], status_code=200)
 async def filter_by_query(request: Request, db_session: AsyncSession = Depends(get_async_db)):
