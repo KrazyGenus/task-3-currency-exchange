@@ -10,6 +10,7 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies
 RUN uv sync --frozen --no-dev
+RUN uv add uvicorn
 
 # Copy your application code
 COPY . .
