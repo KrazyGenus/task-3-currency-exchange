@@ -47,9 +47,11 @@ async def filter_by_query(request: Request, db_session: AsyncSession = Depends(g
     query_params = request.query_params
     for key, values in query_params.items():
         if key not in valid_query_fields:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid query parameter: {key}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"error": f"Invalid query parameter: {key}"})
     filtered_payload = await get_country_by_filtering(query_params, db_session)
     return filtered_payload
+
+
 
 
 @app.get('/countries/image')
@@ -66,23 +68,22 @@ async def summary_image():
 @app.get('/countries/{name}', response_model=List[CountrySchema], status_code=200)
 async def get_by_name(name: str, db_session: AsyncSession = Depends(get_async_db)):
     if name is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"error": "Name cannot be empty"})
     else:
         country_payload = await get_country_by_name(name, db_session)
+        if len(country_payload) == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"error": "Country not found"})
         return country_payload
+
+
 
 @app.delete('/countries/{name}', status_code=200)
 async def delete_by_name(name:str, db_session: AsyncSession = Depends(get_async_db)):
     if name is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"error": "Name cannot be empty"})
     else:
-        try:
-            country_payload = await delete_country(name, db_session)
-            if country_payload is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= { "error": "Country not found"})
-            print(country_payload)
-        except Exception as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= { "error": "Country not found"})
+        country_payload = await delete_country(name, db_session)
+        return country_payload
 
 
 

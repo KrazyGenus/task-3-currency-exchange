@@ -18,7 +18,6 @@ if not DATABASE_URL:
 # Example: mariadb+aiomysql://user:password@host:3306/dbname
 
 CA_FILE_PATH = "src/config/ca.pem"
-print(CA_FILE_PATH)
 ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
 ssl_context.load_verify_locations(CA_FILE_PATH)
 

@@ -50,9 +50,7 @@ async def get_countries_meta(country_meta_url:str, exchange_rate_meta_url:str):
                 parsed_dict["flag_url"] = country.get("flag")
                 parsed_dict["last_refreshed_at"] = dt_object
                 complete_payload.append(parsed_dict)
-            # print(country)
-            #print(exchange_rate.get("rates").get(country.get("currencies")[0].get("code")))
-             
+ 
         elif not country.get("currencies"):
             parsed_dict["currency_code"] = "NULL"
             parsed_dict["exchange_rate"] = 0

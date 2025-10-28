@@ -13,11 +13,10 @@ async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session
     new_objects = []
     try:
         country_meta_response = await get_countries_meta(country_meta_url, exchange_rate_meta_url)
-        print(country_meta_response)
         for country in country_meta_response:
             new_entry = Country(**country)
             new_objects.append(new_entry)
-        print(new_objects)
+
         country_count = await upsert_country_data(db_session, new_objects)
         if country_count > 0:
             top_5_gdp_countries_raw = (
@@ -33,7 +32,7 @@ async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session
     except(TimeoutError, OperationalError):
         raise HTTPException(
             status_code=503,
-            detail="Error occurred while refreshing country data."
+            detail={"error": "Error occurred while refreshing country data."}
         )
 
 
@@ -59,6 +58,12 @@ async def get_filtered_countries(query_payload, db_session):
         sort_value = query_payload.get("sort").strip()
         if sort_value in sort_map:
             base_selection = base_selection.order_by(sort_map[sort_value])
+        if sort_value not in sort_map:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "Validation failed."}
+            )
+            
     try:
         result = await db_session.execute(base_selection)
         filtered_countries = result.scalars().all()
@@ -66,7 +71,7 @@ async def get_filtered_countries(query_payload, db_session):
     except (TimeoutError, OperationalError):
         raise HTTPException(
             status_code=503,
-            detail="Database service unavailable or query timed out."
+            detail={"error": "Database service unavailable or query timed out."}
         )
         
         
@@ -81,7 +86,7 @@ async def find_country_by_name(country_name:str, db_session):
     except (TimeoutError, OperationalError):
         raise HTTPException(
             status_code=503,
-            detail="Database service unavailable or query timed out."
+            detail={"error": "Database service unavailable or query timed out."}
         )
         
         
@@ -95,7 +100,7 @@ async def delete_country_by_name(country_name:str, db_session):
     except (TimeoutError, OperationalError):
         raise HTTPException(
             status_code=503,
-            detail="Database service unavailable or query timed out."
+            detail={"error": "Database service unavailable or query timed out."}
         )
 
 async def db_country_status(db_session):
@@ -111,5 +116,5 @@ async def db_country_status(db_session):
     except (TimeoutError, OperationalError):
         raise HTTPException(
             status_code=503,
-            detail="Database service unavailable or query timed out."
+            detail={"error": "Database service unavailable or query timed out."}
         )

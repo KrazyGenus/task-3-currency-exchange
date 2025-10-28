@@ -56,5 +56,4 @@ async def fetch_stored_summary_image():
     if not os.path.exists(IMAGE_PATH):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={ "error": "Summary image not found" })
     else:
-        print(IMAGE_PATH)
         return IMAGE_PATH
