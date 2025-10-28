@@ -3,11 +3,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 from typing import AsyncGenerator
-
+import ssl
 # 1. Configuration and Environment Variables
 load_dotenv()
 # CRITICAL FIX: Correctly retrieve the environment variable
-DATABASE_URL = os.getenv("MYSQL_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError("The DATABASE_URL environment variable is not set.")
@@ -17,12 +17,17 @@ if not DATABASE_URL:
 # Note: MariaDB is a fork of MySQL, so the MySQL dialect often works.
 # Example: mariadb+aiomysql://user:password@host:3306/dbname
 
-# 2. Asynchronous Engine and Session Setup
-# The 'future=True' parameter enables 2.0 style operation, which is standard for async
+CA_FILE_PATH = "src/config/ca.pem"
+print(CA_FILE_PATH)
+ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+ssl_context.load_verify_locations(CA_FILE_PATH)
+
 async_engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # Set to True for verbose SQL logging
-    pool_recycle=3600 # Recommended for MySQL/MariaDB connections
+    echo=True,
+    pool_size=10, 
+    max_overflow=20,
+    connect_args= { "ssl": ssl_context }
 )
 
 # Use AsyncSession, which is the context-aware session for async operations
