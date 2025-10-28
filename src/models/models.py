@@ -9,9 +9,9 @@ class Country(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(512), nullable=False, unique=True, index=True)
     capital = Column(String(512), nullable=True)
-    region = Column(String(512), nullable=True)
+    region = Column(String(512), nullable=True, index=True)
     population = Column(BigInteger, nullable=False)
-    currency_code = Column(String(5), nullable=False)
+    currency_code = Column(String(5), nullable=False, index=True)
     exchange_rate = Column(Float(precision=10), nullable=False, default=0)
     estimated_gdp = Column(Float(precision=20), nullable=False, default=0) # Store 0 as default
     flag_url = Column(String(512), nullable=True)

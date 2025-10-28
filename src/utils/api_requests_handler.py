@@ -18,7 +18,7 @@ async def get_countries_meta(country_meta_url:str, exchange_rate_meta_url:str):
         async with httpx.AsyncClient() as country_meta:
             country_response = await country_meta.get(f'{country_meta_url}')
             json_country_response = country_response.json()
-    except httpx.ConnectError:
+    except (httpx.ConnectError, httpx.TimeoutException):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail= { 
@@ -67,7 +67,7 @@ async def get_exchange_rate_by_country_code(exchange_rate_meta_url, currency_cod
         async with httpx.AsyncClient() as exchange_meta:
             response = await exchange_meta.get(f'{exchange_rate_meta_url}{currency_code}')
             return response.json()
-    except httpx.ConnectError:
+    except (httpx.ConnectError, httpx.TimeoutException):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail= { 

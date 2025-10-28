@@ -2,38 +2,39 @@ from ..utils.api_requests_handler import get_countries_meta
 from ..utils.image_generation import generate_summary_image
 from ..models.models import Country
 from .database_service import upsert_country_data
-from sqlalchemy import select, func, and_, delete
-from fastapi import HTTPException, status
-from datetime import datetime
-
-
+from sqlalchemy import select, func, delete
+from fastapi import HTTPException
+from sqlalchemy.exc import TimeoutError, OperationalError
 
 
 # store the country payload to the db
 async def create_country_db(country_meta_url, exchange_rate_meta_url, db_session):
     top_5_gdp_countries_raw = None
     new_objects = []
-    country_meta_response = await get_countries_meta(country_meta_url, exchange_rate_meta_url)
-    print(country_meta_response)
-    for country in country_meta_response:
-        new_entry = Country(**country)
-        new_objects.append(new_entry)
-    print(new_objects)
-    country_count = await upsert_country_data(db_session, new_objects)
-    if country_count > 0:
-        top_5_gdp_countries_raw = (
-            await db_session.execute(
-                select(Country.name, Country.estimated_gdp)
-                .order_by(Country.estimated_gdp.desc())
-                .limit(5)
-            )
-        ).all()
-    top_5_gdp_countries = [{"name": name, "estimated_gdp": estimated_gdp} for name, estimated_gdp in top_5_gdp_countries_raw]
-    last_refresh_time_stamp = await db_session.scalar(select(func.max(Country.last_refreshed_at)))
-    await generate_summary_image(country_count, top_5_gdp_countries, last_refresh_time_stamp)
-        
-
-
+    try:
+        country_meta_response = await get_countries_meta(country_meta_url, exchange_rate_meta_url)
+        print(country_meta_response)
+        for country in country_meta_response:
+            new_entry = Country(**country)
+            new_objects.append(new_entry)
+        print(new_objects)
+        country_count = await upsert_country_data(db_session, new_objects)
+        if country_count > 0:
+            top_5_gdp_countries_raw = (
+                await db_session.execute(
+                    select(Country.name, Country.estimated_gdp)
+                    .order_by(Country.estimated_gdp.desc())
+                    .limit(5)
+                )
+            ).all()
+        top_5_gdp_countries = [{"name": name, "estimated_gdp": estimated_gdp} for name, estimated_gdp in top_5_gdp_countries_raw]
+        last_refresh_time_stamp = await db_session.scalar(select(func.max(Country.last_refreshed_at)))
+        await generate_summary_image(country_count, top_5_gdp_countries, last_refresh_time_stamp)
+    except(TimeoutError, OperationalError):
+        raise HTTPException(
+            status_code=503,
+            detail="Error occurred while refreshing country data."
+        )
 
 
 async def get_filtered_countries(query_payload, db_session):
@@ -58,31 +59,45 @@ async def get_filtered_countries(query_payload, db_session):
         sort_value = query_payload.get("sort").strip()
         if sort_value in sort_map:
             base_selection = base_selection.order_by(sort_map[sort_value])
-    result = await db_session.execute(base_selection)
-    filtered_countries = result.scalars().all()
-
-    return filtered_countries
+    try:
+        result = await db_session.execute(base_selection)
+        filtered_countries = result.scalars().all()
+        return filtered_countries
+    except (TimeoutError, OperationalError):
+        raise HTTPException(
+            status_code=503,
+            detail="Database service unavailable or query timed out."
+        )
         
         
 async def find_country_by_name(country_name:str, db_session):
     base_selection = select(Country)
-    country_name = country_name.strip()
-    base_selection = base_selection.where(Country.name.ilike(f"{country_name}"))
-    country_payload = await db_session.execute(base_selection)
-    result = country_payload.scalars().all()
-    return result
-
-
-
+    country_name = country_name.strip()  
+    try:
+        base_selection = base_selection.where(Country.name.ilike(f"{country_name}"))
+        country_payload = await db_session.execute(base_selection)
+        result = country_payload.scalars().all()
+        return result
+    except (TimeoutError, OperationalError):
+        raise HTTPException(
+            status_code=503,
+            detail="Database service unavailable or query timed out."
+        )
+        
+        
+        
 async def delete_country_by_name(country_name:str, db_session):
     country_name = country_name.strip()
     try:
         delete_selection = (delete(Country).where(Country.name.ilike(f"{country_name}")))
         result = await db_session.execute(delete_selection)
         await db_session.commit()
-    except Exception as e:
-        print(e)
-    
+    except (TimeoutError, OperationalError):
+        raise HTTPException(
+            status_code=503,
+            detail="Database service unavailable or query timed out."
+        )
+
 async def db_country_status(db_session):
     try:
         count = await db_session.scalar(select(func.count(Country.id)))
@@ -93,5 +108,8 @@ async def db_country_status(db_session):
             "total_countries": int(count),
             "last_refreshed_at": last_refresh_time_stamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
-    except Exception as e:
-        print(e)
+    except (TimeoutError, OperationalError):
+        raise HTTPException(
+            status_code=503,
+            detail="Database service unavailable or query timed out."
+        )

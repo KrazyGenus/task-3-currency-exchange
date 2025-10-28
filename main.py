@@ -73,7 +73,6 @@ async def get_by_name(name: str, db_session: AsyncSession = Depends(get_async_db
 
 @app.delete('/countries/{name}', status_code=200)
 async def delete_by_name(name:str, db_session: AsyncSession = Depends(get_async_db)):
-    print("Delete: ", name)
     if name is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty")
     else:
