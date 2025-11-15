@@ -90,8 +90,8 @@ The results are cached in a MySQL database and refreshed manually via the `/coun
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/terrarate-api.git
-cd terrarate-api
+[git clone https://github.com/LunarKhord/task-3-currency-exchange.git]
+cd task-3-currency-exchange
 ```
 
 ### 2️⃣ Install Dependencies (using uv)
